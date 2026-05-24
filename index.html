@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="dark" />
+<title>StartupValuationTerminal — VC Portfolio Monte Carlo</title>
+<meta name="description" content="Terminal-style Monte Carlo dashboard for a venture portfolio with burn/runway modeling, dilution simulations, and VC chatter sentiment." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<!-- ===== Boot overlay ===== -->
+<div id="boot-overlay" class="boot-overlay" role="dialog" aria-modal="true" aria-labelledby="boot-title" hidden>
+  <div class="boot-inner">
+    <button type="button" id="boot-skip" class="boot-skip">Skip intro</button>
+    <h2 id="boot-title" class="sr-only">Terminal boot sequence</h2>
+    <pre id="boot-log" class="boot-log" aria-live="polite" aria-atomic="false"></pre>
+    <p class="boot-hint sr-only">Press Escape to skip the boot animation.</p>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ===== Live ticker tape ===== -->
+  <div class="ticker-tape-wrap" role="region" aria-label="Live startup ticker tape">
+    <button type="button" id="tape-toggle" class="tape-toggle" aria-pressed="false" aria-label="Pause ticker tape"><span aria-hidden="true" class="tape-icon">❚❚</span><span class="tape-toggle-lbl">Pause</span></button>
+    <div class="ticker-tape-viewport">
+      <div class="ticker-tape" id="ticker-tape" aria-hidden="true"></div>
+    </div>
+    <div id="ticker-tape-sr" class="sr-only" aria-live="off"></div>
+  </div>
+
+  <!-- ===== Terminal top strip ===== -->
+  <div class="term-strip" role="status" aria-label="Session status">
+    <span class="kv"><span class="brand-dot" aria-hidden="true"></span><span>SVT</span></span>
+    <span class="kv"><span>WATCH</span> <span class="v" id="term-watch">10</span></span>
+    <span class="kv term-conn initializing" id="term-conn" aria-label="Data feed connection status">
+      <span class="conn-shape" aria-hidden="true"></span>
+      <span id="term-conn-label">INIT</span>
+      <span class="v" id="term-conn-src">—</span>
+    </span>
+    <span class="kv" id="term-mkt-wrap"><span>MKT</span> <span class="v" id="term-market" title="US equity market session">—</span></span>
+    <span class="kv"><span>HORIZON</span> <span class="v" id="term-horizon">30D</span></span>
+    <span class="kv"><span>PATHS</span> <span class="v" id="term-paths">1K</span></span>
+    <span class="kv"><span>SEED</span> <span class="v" id="term-seed">42</span></span>
+    <span class="kv"><span>LATENCY</span> <span class="v" id="term-latency">—</span></span>
+    <span class="kv ok"><span>UPTIME</span> <span class="v" id="term-uptime">00:00:00</span></span>
+  </div>
+
+  <!-- ===== Feed banner (only visible when real feed falls back) ===== -->
+  <div id="feed-banner" class="feed-banner" role="status" hidden>
+    <span class="feed-banner-icon" aria-hidden="true">!</span>
+    <span class="feed-banner-text" id="feed-banner-text">Live feed unavailable — showing simulated data.</span>
+    <button type="button" id="feed-retry" class="feed-btn">Retry</button>
+    <button type="button" id="feed-dismiss" class="feed-btn feed-btn-icon" aria-label="Dismiss feed notice">×</button>
+  </div>
+
+  <!-- Session-status live region for connection/market transitions only -->
+  <span id="session-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span>
+
+  <!-- ===== Header ===== -->
+  <header class="app-header" role="banner">
+    <div>
+      <h1>StartupValuationTerminal // Terminal</h1>
+      <p class="subtitle">Monte Carlo dashboard for a venture portfolio. Track valuations, MRR growth, burn, runway, and dilution scenarios.</p>
+    </div>
+    <div class="header-meta" aria-label="Data status">
+      <span><span class="live-dot" aria-hidden="true"></span>Live ticks</span>
+      <span>Last update: <time id="last-update" datetime="">—</time></span>
+    </div>
+  </header>
+
+  <main id="main" role="main" aria-labelledby="dashboard-title">
+    <h2 id="dashboard-title" class="sr-only">Portfolio dashboard</h2>
+
+    <!-- ===== Strategy + controls ===== -->
+    <section class="controls-block" aria-labelledby="controls-heading">
+      <h2 id="controls-heading" class="sr-only">Strategy and simulation controls</h2>
+
+      <div class="strategy-bar">
+        <fieldset class="strategy-fieldset">
+          <legend>Trading strategies <span class="legend-hint">pick one or more — signals combine</span></legend>
+          <div class="strategy-options" id="strategy-options"></div>
+        </fieldset>
+      </div>
+
+      <div class="controls-row">
+        <div class="field">
+          <label for="ticker-select">Focus startup</label>
+          <select id="ticker-select" aria-describedby="ticker-help"></select>
+          <span id="ticker-help" class="sr-only">Select a startup to drill into.</span>
+        </div>
+        <div class="field">
+          <label for="sims-range">Simulations <span id="sims-value" class="range-value" aria-hidden="true">1000</span></label>
+          <div class="range-row">
+            <input type="range" id="sims-range" min="100" max="10000" step="100" value="1000" aria-valuetext="1000 simulation paths" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="horizon-select">Horizon</label>
+          <select id="horizon-select">
+            <option value="5">5 trading days</option>
+            <option value="30" selected>30 trading days</option>
+            <option value="90">90 trading days</option>
+            <option value="252">252 trading days</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="seed-input">Random seed</label>
+          <select id="seed-input">
+            <option value="42" selected>42 (deterministic)</option>
+            <option value="1337">1337</option>
+            <option value="2025">2025</option>
+            <option value="random">random</option>
+          </select>
+        </div>
+        <button type="button" id="run-btn" class="btn">Run Sim</button>
+      </div>
+
+      <span id="live-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span>
+      <p id="status-line" class="status-line" aria-hidden="true">Ready. Select strategies and a ticker, then run a simulation.</p>
+    </section>
+
+    <!-- ===== Main grid: content + right rail ===== -->
+    <div class="main-grid">
+
+      <div class="main-col">
+
+        <!-- ===== Portfolio KPIs ===== -->
+        <section aria-labelledby="perf-heading">
+          <div class="section-header tight">
+            <h2 id="perf-heading">Portfolio performance</h2>
+            <span class="subtext">Equal-weight — all startups</span>
+          </div>
+          <div class="kpi-strip" id="kpi-strip"></div>
+        </section>
+
+        <!-- ===== Sector heatmap ===== -->
+        <section aria-labelledby="heatmap-heading" class="heatmap-section">
+          <div class="section-header tight">
+            <h2 id="heatmap-heading">Watchlist heatmap</h2>
+            <span class="subtext">Tile color = today change · size = portfolio weight</span>
+          </div>
+          <div class="heatmap" id="heatmap" role="list" aria-label="Watchlist heatmap by today's change"></div>
+        </section>
+
+        <!-- ===== Individual stocks ===== -->
+        <section class="section" aria-labelledby="stocks-heading">
+          <div class="section-header">
+            <div>
+              <h2 id="stocks-heading">Individual startups // portfolio</h2>
+              <p class="subtext">Every startup portfolio in the SVT dashboard. Action column = combined signal (INVEST / EXIT / HOLD) from your selected strategies. Click a row to drill down.</p>
+            </div>
+            <span id="aggregate-signal" aria-live="polite"></span>
+          </div>
+          <div class="table-wrap">
+            <table class="stocks" id="stocks-table">
+              <caption class="sr-only">Startup list with current valuation, today's change, expected Monte Carlo return, strategy action and sentiment.</caption>
+              <thead>
+                <tr>
+                  <th scope="col" aria-sort="none"><button type="button" data-sort="ticker">Startup <span class="sort-ind" aria-hidden="true">⇅</span></button></th>
+                  <th scope="col">Company</th>
+                  <th scope="col" class="spark-col">60D</th>
+                  <th scope="col" class="num" aria-sort="none"><button type="button" data-sort="price">Valuation <span class="sort-ind" aria-hidden="true">⇅</span></button></th>
+                  <th scope="col" class="num" aria-sort="none"><button type="button" data-sort="change">Chg% <span class="sort-ind" aria-hidden="true">⇅</span></button></th>
+                  <th scope="col" class="num" aria-sort="none"><button type="button" data-sort="expRet">MC E[R] <span class="sort-ind" aria-hidden="true">⇅</span></button></th>
+                  <th scope="col" class="num">95% CI</th>
+                  <th scope="col" class="num" aria-sort="none"><button type="button" data-sort="sentiment">Sent</button></th>
+                  <th scope="col">Pressure</th>
+                  <th scope="col">Conviction</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody id="stocks-body"></tbody>
+            </table>
+          </div>
+          <p class="table-help subtext" id="table-help">Tip: click any row or press Enter on a focused row to select that ticker.</p>
+        </section>
+
+        <!-- ===== Detail for selected ticker ===== -->
+        <section class="section" aria-labelledby="detail-heading" id="detail-section">
+          <div class="section-header">
+            <div>
+              <h2 id="detail-heading">Detail // <span id="detail-ticker">—</span> <span id="detail-name" class="subtext"></span></h2>
+              <p class="subtext" id="detail-subtitle">Click a row in the table above to drill into a specific startup.</p>
+            </div>
+            <span id="detail-signal" aria-live="polite"></span>
+          </div>
+
+          <div class="grid-2">
+            <figure class="chart-wrap" aria-labelledby="mc-heading">
+              <span class="chart-crt-layer" aria-hidden="true"></span>
+              <h3 id="mc-heading">Monte Carlo price paths</h3>
+              <div id="mc-chart" role="img" aria-label="Loading chart" tabindex="0" aria-describedby="mc-crosshair-help"></div>
+              <p id="mc-crosshair-help" class="sr-only">Use left and right arrow keys to move the crosshair across trading days; press Home or End to jump to first or last day.</p>
+              <div id="mc-crosshair-sr" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+              <figcaption id="mc-caption">Run a simulation to see projected price paths.</figcaption>
+              <table class="sr-only" id="mc-data-table" aria-label="Monte Carlo summary statistics">
+                <caption>Simulation summary</caption>
+                <thead><tr><th scope="col">Statistic</th><th scope="col">Value</th></tr></thead>
+                <tbody id="mc-data-body"></tbody>
+              </table>
+            </figure>
+
+            <div class="sentiment-wrap" aria-labelledby="sentiment-heading">
+              <h3 id="sentiment-heading">SVT chatter</h3>
+
+              <div class="sentiment-bars" role="img" aria-label="Sentiment distribution" id="sentiment-bars-wrap">
+                <div class="sentiment-bar-pos" id="sent-bar-pos" style="width: 0%"></div>
+                <div class="sentiment-bar-neu" id="sent-bar-neu" style="width: 0%"></div>
+                <div class="sentiment-bar-neg" id="sent-bar-neg" style="width: 0%"></div>
+              </div>
+
+              <div class="sentiment-stats" aria-label="Sentiment breakdown">
+                <div class="sentiment-stat">
+                  <div class="sentiment-stat-label" id="sent-pos-lbl">Positive</div>
+                  <div class="sentiment-stat-value delta-up" id="sent-pos-val" aria-labelledby="sent-pos-lbl">—</div>
+                </div>
+                <div class="sentiment-stat">
+                  <div class="sentiment-stat-label" id="sent-neu-lbl">Neutral</div>
+                  <div class="sentiment-stat-value" id="sent-neu-val" aria-labelledby="sent-neu-lbl">—</div>
+                </div>
+                <div class="sentiment-stat">
+                  <div class="sentiment-stat-label" id="sent-neg-lbl">Negative</div>
+                  <div class="sentiment-stat-value delta-down" id="sent-neg-val" aria-labelledby="sent-neg-lbl">—</div>
+                </div>
+              </div>
+
+              <h4 id="recent-posts">Recent posts</h4>
+              <ul class="posts" id="post-list" aria-labelledby="recent-posts"></ul>
+            </div>
+          </div>
+
+          <div>
+            <h3 id="strategy-breakdown-heading">Per-strategy signals // <span id="detail-ticker-2">—</span></h3>
+            <div class="strategy-grid" id="strategy-grid" aria-labelledby="strategy-breakdown-heading"></div>
+          </div>
+        </section>
+
+        <!-- ===== Summary ===== -->
+        <section class="section" aria-labelledby="summary-heading">
+          <div class="section-header">
+            <div>
+              <h2 id="summary-heading">Startup list // summary</h2>
+              <p class="subtext" id="summary-subtitle">Narrative overview of every startup with combined signal and sentiment.</p>
+            </div>
+            <span id="summary-signal"></span>
+          </div>
+          <div class="summary-grid" id="summary-grid"></div>
+        </section>
+
+      </div>
+
+      <!-- ===== Right rail ===== -->
+      <aside class="side-rail" aria-label="Key session metrics">
+        <div class="rail-box" id="rail-winrate">
+          <p class="rail-box-label">Win rate</p>
+          <p class="rail-box-value up" id="rail-winrate-val">—</p>
+          <p class="rail-box-sub" id="rail-winrate-sub">Pr(MC final &gt; entry)</p>
+        </div>
+        <div class="rail-box gauge-box" id="rail-sharpe">
+          <p class="rail-box-label">Sharpe</p>
+          <div class="gauge-wrap" id="gauge-sharpe" role="img" aria-label="Sharpe gauge">
+            <svg class="gauge" viewBox="0 0 120 68" aria-hidden="true">
+              <path class="gauge-track" d="M10,60 A50,50 0 0,1 110,60"/>
+              <path class="gauge-fill" id="gauge-sharpe-arc" d="M10,60 A50,50 0 0,1 110,60"/>
+              <line class="gauge-needle" id="gauge-sharpe-needle" x1="60" y1="60" x2="60" y2="16"/>
+              <circle class="gauge-hub" cx="60" cy="60" r="4"/>
+              <line class="gauge-tick" x1="60" y1="14" x2="60" y2="10" stroke-width="2"/>
+            </svg>
+          </div>
+          <p class="rail-box-value" id="rail-sharpe-val">—</p>
+          <p class="rail-box-sub" id="rail-sharpe-sub">Ex-ante · rf 4.5%</p>
+        </div>
+        <div class="rail-box" id="rail-er">
+          <p class="rail-box-label">E[R]</p>
+          <p class="rail-box-value" id="rail-er-val">—</p>
+          <p class="rail-box-sub" id="rail-er-sub">Portfolio, 30d</p>
+        </div>
+        <div class="rail-box down gauge-box" id="rail-var">
+          <p class="rail-box-label">VaR 95%</p>
+          <div class="gauge-wrap" id="gauge-var" role="img" aria-label="VaR gauge">
+            <svg class="gauge" viewBox="0 0 120 68" aria-hidden="true">
+              <path class="gauge-track" d="M10,60 A50,50 0 0,1 110,60"/>
+              <path class="gauge-fill danger" id="gauge-var-arc" d="M10,60 A50,50 0 0,1 110,60"/>
+              <line class="gauge-needle danger" id="gauge-var-needle" x1="60" y1="60" x2="60" y2="16"/>
+              <circle class="gauge-hub" cx="60" cy="60" r="4"/>
+              <line class="gauge-tick" x1="60" y1="14" x2="60" y2="10" stroke-width="2"/>
+            </svg>
+          </div>
+          <p class="rail-box-value down" id="rail-var-val">—</p>
+          <p class="rail-box-sub" id="rail-var-sub">5th-percentile outcome</p>
+        </div>
+        <div class="rail-box" id="rail-sent">
+          <p class="rail-box-label">Crowd score</p>
+          <p class="rail-box-value" id="rail-sent-val">—</p>
+          <p class="rail-box-sub">X net pos − neg</p>
+        </div>
+        <div class="rail-box" id="rail-buys">
+          <p class="rail-box-label">Buys/Sells</p>
+          <p class="rail-box-value" id="rail-buys-val">—</p>
+          <p class="rail-box-sub" id="rail-buys-sub">Startup list</p>
+        </div>
+      </aside>
+
+    </div>
+        <section class="section extra-panel" aria-labelledby="runway-heading" id="extra-section">
+          <div class="section-header">
+            <div>
+              <h2 id="runway-heading">Runway waterfall // <span id="extra-ticker">—</span></h2>
+              <p class="subtext" id="extra-subtitle">Cash balance projection given current burn and ARR ramp. Dilution overlay shows founder ownership decay at each priced round.</p>
+            </div>
+            <span id="extra-meta" class="subtext"></span>
+          </div>
+          <div id="extra-content" role="img" aria-label="Runway and dilution waterfall chart"></div>
+          <table class="sr-only" id="extra-data-table"><caption>Runway waterfall data</caption><thead><tr><th scope="col">Month</th><th scope="col">Cash $M</th><th scope="col">Ownership %</th></tr></thead><tbody id="extra-data-body"></tbody></table>
+        </section>
+
+  </main>
+
+  <!-- Particle effects layer -->
+  <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
+
+  <!-- SVG gradient defs for sparklines -->
+  <svg aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="spark-grad-up" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#00ff88" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="spark-grad-down" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#ff3366" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#ff3366" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <footer class="app-footer" role="contentinfo">
+    <span>MC engine: Geometric Brownian Motion // SVT sentiment (simulated) // WCAG 2.2 AA</span>
+    <span class="brand-mark">SVT<span class="dot">.</span></span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

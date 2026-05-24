@@ -1,0 +1,43 @@
+name: Refresh synthetic data
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump quote snapshot
+        run: |
+          node -e "
+            const fs = require('fs');
+            const f = './data/quotes.json';
+            const j = JSON.parse(fs.readFileSync(f, 'utf8'));
+            j.generatedAt = new Date().toISOString();
+            for (const k of Object.keys(j.tickers)) {
+              const t = j.tickers[k];
+              const last = t.closes[t.closes.length - 1];
+              const jitter = (Math.random() - 0.5) * 0.04;
+              const next = last * (1 + jitter);
+              t.closes.push(+next.toFixed(4));
+              t.closes = t.closes.slice(-90);
+              t.prevClose = t.price;
+              t.price = +next.toFixed(4);
+              t.ts = Date.now();
+            }
+            fs.writeFileSync(f, JSON.stringify(j, null, 2));
+          "
+      - name: Commit
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git add data/quotes.json
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "data: refresh synthetic quotes"
+          git push
