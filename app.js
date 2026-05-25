@@ -735,6 +735,7 @@ function renderTickerSelect() {
     renderDetail();
     renderStocksTable();
     renderExtraPanel();
+    renderExtra2Panel();
     announce(`Selected ${state.selectedTicker}. Startup detail loaded.`);
   });
 }
@@ -1375,6 +1376,7 @@ function startLiveTicks() {
     renderTickerTape();
     renderStocksTable();
     renderExtraPanel();
+    renderExtra2Panel();
   };
 
   // Cadence: faster while market open, slower when closed, slowest when offline
@@ -1520,6 +1522,7 @@ function selectTickerFromRow(ticker) {
   renderDetail();
   renderStocksTable();
   renderExtraPanel();
+  renderExtra2Panel();
   // Don't steal focus — just announce
   announce(`Selected ${ticker}. Detail panel updated.`);
   // Scroll detail into view for convenience but keep focus
@@ -1962,6 +1965,51 @@ function renderExtraPanel() {
   ).join("");
 }
 
+
+function renderExtra2Panel() {
+  const container = document.getElementById("extra2-content");
+  if (!container || !state.stocks) return;
+  const states = ["Seed", "A", "B", "C", "D+", "IPO", "M&A", "Dead"];
+  // Per-stage 12-month transition probability rows (sum = 1)
+  const T = [
+    [0.45, 0.30, 0.00, 0.00, 0.00, 0.00, 0.05, 0.20],
+    [0.00, 0.40, 0.32, 0.00, 0.00, 0.00, 0.08, 0.20],
+    [0.00, 0.00, 0.42, 0.30, 0.00, 0.02, 0.10, 0.16],
+    [0.00, 0.00, 0.00, 0.45, 0.25, 0.08, 0.12, 0.10],
+    [0.00, 0.00, 0.00, 0.00, 0.50, 0.20, 0.20, 0.10],
+    [0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00],
+    [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00],
+    [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00],
+  ];
+  const palette = ["#1a2029", "#00b36a", "#00ff88", "#5cffaf"];
+  const w = 720, h = 380, padL = 90, padR = 12, padT = 36, padB = 18;
+  const n = states.length;
+  const cellW = (w - padL - padR) / n;
+  const cellH = (h - padT - padB) / n;
+  let cells = "", colHdr = "", rowHdr = "";
+  const data = [];
+  for (let i = 0; i < n; i++) {
+    rowHdr += `<text x="${padL - 6}" y="${padT + i * cellH + cellH / 2 + 4}" text-anchor="end" fill="#d6dce4" font-size="10" font-family="JetBrains Mono, monospace">${states[i]}</text>`;
+    for (let j = 0; j < n; j++) {
+      const p = T[i][j];
+      const tier = p === 0 ? 0 : p < 0.15 ? 1 : p < 0.40 ? 2 : 3;
+      const x = padL + j * cellW, y = padT + i * cellH;
+      cells += `<rect x="${x}" y="${y}" width="${cellW - 2}" height="${cellH - 2}" fill="${palette[tier]}" stroke="#191c23"/>`;
+      if (p > 0) cells += `<text x="${x + cellW / 2}" y="${y + cellH / 2 + 4}" text-anchor="middle" fill="${tier >= 2 ? "#0a0b0e" : "#d6dce4"}" font-size="10" font-weight="700" font-family="JetBrains Mono, monospace">${(p * 100).toFixed(0)}%</text>`;
+      data.push({ from: states[i], to: states[j], p });
+    }
+  }
+  for (let j = 0; j < n; j++) {
+    colHdr += `<text x="${padL + j * cellW + cellW / 2}" y="${padT - 8}" text-anchor="middle" fill="#d6dce4" font-size="10" font-family="JetBrains Mono, monospace">${states[j]}</text>`;
+  }
+  container.innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Series-stage Markov transition probability matrix. Rows: starting state. Columns: state in 12 months. Rows sum to 100 percent.">
+    <text x="6" y="14" fill="#7f8693" font-size="9" font-family="JetBrains Mono, monospace">FROM → TO (12mo)</text>
+    ${colHdr}${rowHdr}${cells}
+  </svg>`;
+  const body = document.getElementById("extra2-data-body");
+  if (body) body.innerHTML = data.filter(d => d.p > 0).map(d => `<tr><td>${d.from}</td><td>${d.to}</td><td>${(d.p * 100).toFixed(0)}%</td></tr>`).join("");
+}
+
 // ========== Init ==========
 async function init() {
   updateConnStripOnly();
@@ -1991,6 +2039,7 @@ async function init() {
   wireKpiTilt();
   startLiveTicks();
   renderExtraPanel();
+  renderExtra2Panel();
 
   const src = result.ok ? `real Yahoo Finance data for ${result.count} tickers` : "simulated data (live feed unavailable)";
   announce(`Dashboard ready with ${src}.`);

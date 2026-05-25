@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-05-24T23:46:46.157Z",
+  "generatedAt": "2026-05-25T00:14:27.223Z",
   "source": "synthetic",
   "tickers": {
     "AETHER": {
       "ticker": "AETHER",
       "price": 480,
       "prevClose": 483.5029967899991,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -106,7 +106,7 @@
       "ticker": "MOLTEN",
       "price": 220,
       "prevClose": 237.86646687350932,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -206,7 +206,7 @@
       "ticker": "ORCHID",
       "price": 950,
       "prevClose": 1003.3987171454885,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -306,7 +306,7 @@
       "ticker": "PYLON",
       "price": 615,
       "prevClose": 621.4402354880982,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -406,7 +406,7 @@
       "ticker": "RIVET",
       "price": 165,
       "prevClose": 164.6297237084674,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -506,7 +506,7 @@
       "ticker": "SOLACE",
       "price": 35,
       "prevClose": 35.97419798440808,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -606,7 +606,7 @@
       "ticker": "ULTRA",
       "price": 2300,
       "prevClose": 2293.1582992264935,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -706,7 +706,7 @@
       "ticker": "VIRELO",
       "price": 410,
       "prevClose": 424.3681481551208,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -806,7 +806,7 @@
       "ticker": "WIRED",
       "price": 280,
       "prevClose": 276.01325368334267,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [
@@ -906,7 +906,7 @@
       "ticker": "ZENITH",
       "price": 1200,
       "prevClose": 1208.5113802030103,
-      "ts": 1779666406157,
+      "ts": 1779668067223,
       "currency": "USD",
       "exchange": "SIM",
       "closes": [

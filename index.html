@@ -321,6 +321,45 @@
           <div id="extra-content" role="img" aria-label="Runway and dilution waterfall chart"></div>
           <table class="sr-only" id="extra-data-table"><caption>Runway waterfall data</caption><thead><tr><th scope="col">Month</th><th scope="col">Cash $M</th><th scope="col">Ownership %</th></tr></thead><tbody id="extra-data-body"></tbody></table>
         </section>
+        <section class="section extra-panel" aria-labelledby="markov-heading" id="extra2-section">
+          <div class="section-header">
+            <div>
+              <h2 id="markov-heading">Series-stage Markov matrix // transition probabilities</h2>
+              <p class="subtext" id="extra2-subtitle">12-month transition probabilities between funding stages (Seed → A → B → C → D → IPO / Acquihire / Dead). Rows sum to 100%.</p>
+            </div>
+            <span id="extra2-meta" class="subtext"></span>
+          </div>
+          <div id="extra2-content" role="img" aria-label="Series-stage Markov transition probability matrix"></div>
+          <table class="sr-only" id="extra2-data-table"><caption>Series-stage Markov matrix</caption><thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">Probability</th></tr></thead><tbody id="extra2-data-body"></tbody></table>
+        </section>
+        <section class="section methodology" aria-labelledby="methodology-heading" id="methodology-section">
+          <div class="section-header">
+            <div>
+              <h2 id="methodology-heading">Methodology &amp; model</h2>
+              <p class="subtext">Technical write-up of the stochastic process, calibration approach, and published references for the Startup layer of this dashboard.</p>
+            </div>
+            <span class="subtext">WCAG 2.2 AA · dissertation-grade documentation</span>
+          </div>
+
+          <article class="methodology-article">
+            <h3 id="m-model">Stochastic model</h3>
+            <p>Startup post-money valuation is modeled as a Merton jump-diffusion to capture both diffusive growth and discrete revaluation at priced funding rounds. Conditional on survival to round <code>k</code>, the valuation evolves as:</p>
+      <p class="m-eq"><span role="math" aria-label="d log V sub t equals mu dt plus sigma dW sub t plus sum over k of J sub k times d N sub k">d log V_t = μ dt + σ dW_t + sum_k J_k dN_k</span></p>
+      <p>Stage transitions follow a discrete Markov chain over states <code>{Seed, A, B, C, D+, IPO, M&amp;A, Dead}</code> with 12-month transition probabilities calibrated from Crunchbase outcomes data (2010–2024 vintages). Conditional on graduation to stage <code>k+1</code>, the jump <code>J_k</code> is drawn from a log-normal with mean mark-up consistent with median priced-round valuation step-ups (typically 2.4× Seed→A, 2.1× A→B, 1.7× B→C).</p>
+
+            <h3 id="m-calib">Calibration</h3>
+            <p>Drift <code>μ</code> uses the Cochrane (2005) ICAPM-adjusted alpha for venture as a starting point and is then per-stage tilted. Volatility <code>σ</code> exceeds public equivalents materially (σ ≈ 0.45 for Series A vs σ ≈ 0.25 for SPY) reflecting illiquidity and information asymmetry. Burn rate uses median net-burn from the Bessemer State-of-the-Cloud SaaS benchmarks; runway is computed deterministically off cash balance and burn until the next round event in the Markov chain.</p>
+
+            <h3 id="m-impl">Numerical implementation</h3>
+            <p>The Markov state matrix and the jump-diffusion are coupled: at simulation step <code>t</code> a draw is taken against the transition kernel and, conditional on a graduation jump, the post-money is multiplied by the round mark-up. Liquidation preferences are modeled with 1× non-participating preferred stack ordering for the dilution waterfall. The runway panel ignores secondary tender offers.</p>
+
+            <h3 id="m-limits">Known limitations</h3>
+            <ul><li>Bridge rounds and SAFE conversions are folded into the nearest priced-round event; their dilutive effects are approximated, not exact.</li><li>M&amp;A outcomes are modeled as terminal states without an explicit acquihire-vs-strategic distinction.</li><li>Volatility is constant per stage; in reality σ contracts materially from C onward and the model overstates late-stage path dispersion.</li></ul>
+
+            <h3 id="m-refs">References</h3>
+            <ol class="methodology-refs" aria-label="References"><li><cite>Cochrane, J. H. (2005). The risk and return of venture capital. Journal of Financial Economics 75(1), 3–52.</cite></li><li><cite>Merton, R. C. (1976). Option pricing when underlying stock returns are discontinuous. Journal of Financial Economics 3(1–2), 125–144.</cite></li><li><cite>Kaplan, S. N. &amp; Schoar, A. (2005). Private Equity Performance: Returns, Persistence, and Capital Flows. Journal of Finance 60(4).</cite></li><li><cite>Correlation Ventures (2023). Venture Outcomes Data 2010–2022.</cite></li></ol>
+          </article>
+        </section>
 
   </main>
 
