@@ -279,7 +279,7 @@ button, select, input[type="range"] { font-family: inherit; font-size: inherit; 
   font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: none;
-  color: var(--text-dim);
+  color: var(--text-muted);
   margin-left: 8px;
 }
 
@@ -319,7 +319,7 @@ button, select, input[type="range"] { font-family: inherit; font-size: inherit; 
 }
 .strategy-chip .desc {
   font-weight: 400;
-  color: var(--text-dim);
+  color: var(--text-muted);
   text-transform: none;
   letter-spacing: 0.02em;
   font-size: 10.5px;
@@ -337,7 +337,7 @@ button, select, input[type="range"] { font-family: inherit; font-size: inherit; 
 
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -417,7 +417,7 @@ button, select, input[type="range"] { font-family: inherit; font-size: inherit; 
 .kpi.negative::before { background: var(--danger); }
 .kpi.accent::before   { background: var(--accent); }
 .kpi-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -460,7 +460,7 @@ button, select, input[type="range"] { font-family: inherit; font-size: inherit; 
 .rail-box.down::after { background: var(--danger); }
 .rail-box.warn::after { background: var(--warn); }
 .rail-box-label {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -477,8 +477,8 @@ button, select, input[type="range"] { font-family: inherit; font-size: inherit; 
 .rail-box-value.up { color: var(--accent); }
 .rail-box-value.down { color: var(--danger); }
 .rail-box-sub {
-  font-size: 10px;
-  color: var(--text-dim);
+  font-size: 11px;
+  color: var(--text-muted);
   margin-top: 4px;
   letter-spacing: 0.04em;
 }
@@ -826,8 +826,8 @@ figcaption {
   align-items: flex-end;
   gap: 16px;
   flex-wrap: wrap;
-  font-size: 10px;
-  color: var(--text-dim);
+  font-size: 10.5px;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -1796,6 +1796,106 @@ table.stocks tbody tr:focus-visible {
 }
 .extra-panel { background: var(--bg-elev-1); }
 .extra-panel h2 { color: var(--accent); }
+
+
+
+/* ====================== UI quality pass — responsive + spacing rhythm ====================== */
+@media (max-width: 720px) {
+  .methodology-toc ol { grid-template-columns: 1fr; }
+  .methodology-glossary {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+  }
+  .methodology-glossary dt {
+    text-align: left;
+    margin-top: 8px;
+  }
+  .section.methodology { padding: 14px 16px 16px; }
+  .methodology-article { font-size: 12px; }
+  .controls-row { grid-template-columns: 1fr; }
+  .main-grid { gap: 10px; }
+  .app-header h1 { font-size: 14px; letter-spacing: 0.08em; }
+}
+@media (max-width: 480px) {
+  .app { padding: 10px 12px 20px; }
+  .term-strip { gap: 14px; font-size: 10.5px; }
+  .kpi-strip { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .kpi-value { font-size: 20px; }
+}
+
+/* Consistent section vertical rhythm */
+.section, .controls-block { margin-bottom: 16px; }
+.section + .section.methodology { margin-top: 4px; }
+.section.methodology + .section.methodology { margin-top: 0; }
+
+/* Improve focus contrast — pin focus ring to a slot independent of --accent */
+*:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.7);
+}
+
+/* Stronger boot-overlay backdrop so partial layouts under it are not visible */
+.boot-overlay {
+  background: rgba(0, 0, 0, 0.96);
+  backdrop-filter: blur(2px);
+}
+
+/* Make TOC links easier to click + clearer hover */
+.methodology-toc a {
+  padding: 2px 0;
+  transition: color 0.1s, border-bottom-color 0.1s;
+}
+.methodology-toc a:hover,
+.methodology-toc a:focus-visible {
+  color: var(--accent);
+  border-bottom-style: solid;
+}
+
+/* Methodology equation block — tighten on narrow viewports */
+.methodology-article p.m-eq {
+  overflow-x: auto;
+  white-space: nowrap;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+/* Stronger contrast for glossary terms on elevated bg */
+.methodology-glossary dt {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+/* Extra panel headings stand out a bit more */
+.extra-panel .section-header { border-bottom-width: 1px; }
+.extra-panel h2 { font-weight: 800; }
+
+/* Polish list-item bullets in methodology */
+.methodology-article ul,
+.methodology-article ol.methodology-refs,
+.methodology-article ol.methodology-example {
+  margin: 6px 0 16px 0;
+}
+.methodology-article ul li::marker { color: var(--accent); }
+.methodology-article ol.methodology-refs li::marker { color: var(--text-muted); }
+
+/* Live-tick price-cell flashes use accent — make sure they don't override AA text color */
+table.stocks td.num { font-variant-numeric: tabular-nums; }
+
+/* Skip link more visible */
+.skip-link {
+  font-size: 13px;
+  padding: 10px 18px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+.skip-link:focus { left: 12px; top: 12px; }
+
+/* Section headers — slightly tighter on the methodology + extra panels for rhythm */
+.extra-panel .section-header,
+.methodology .section-header {
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
 
 
 
