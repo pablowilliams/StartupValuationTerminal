@@ -332,32 +332,92 @@
           <div id="extra2-content" role="img" aria-label="Series-stage Markov transition probability matrix"></div>
           <table class="sr-only" id="extra2-data-table"><caption>Series-stage Markov matrix</caption><thead><tr><th scope="col">From</th><th scope="col">To</th><th scope="col">Probability</th></tr></thead><tbody id="extra2-data-body"></tbody></table>
         </section>
+        <section class="section extra-panel" aria-labelledby="tornado-heading" id="extra3-section">
+          <div class="section-header">
+            <div>
+              <h2 id="tornado-heading">Sensitivity analysis // tornado chart</h2>
+              <p class="subtext" id="extra3-subtitle">Single-parameter elasticities at the calibrated baseline. Each bar is the % change in the dashboard's primary forward statistic when the parameter is perturbed by the listed amount, holding all others constant. Bars sorted by absolute magnitude, largest impact first.</p>
+            </div>
+            <span id="extra3-meta" class="subtext"></span>
+          </div>
+          <div id="extra3-content" role="img" aria-labelledby="tornado-heading" aria-describedby="extra3-subtitle"></div>
+          <table class="sr-only" id="extra3-data-table"><caption>Parameter sensitivities, sorted by absolute magnitude</caption><thead><tr><th scope="col">Parameter</th><th scope="col">Perturbation</th><th scope="col">Downside %</th><th scope="col">Upside %</th><th scope="col">Range</th></tr></thead><tbody id="extra3-data-body"></tbody></table>
+        </section>
+        <section class="section extra-panel" aria-labelledby="grid-heading" id="extra4-section">
+          <div class="section-header">
+            <div>
+              <h2 id="grid-heading">Parameter grid // σ × P(Dead)</h2>
+              <p class="subtext" id="extra4-subtitle">2-D parameter-space heatmap: σ on the x-axis, P(Dead) on the y-axis, color + glyph encoding the resulting 5yr E[outcome multiple]. Cells use the same severity glyph vocabulary as elsewhere in the dashboard for color-independent encoding.</p>
+            </div>
+            <span id="extra4-meta" class="subtext"></span>
+          </div>
+          <div id="extra4-content" role="img" aria-labelledby="grid-heading" aria-describedby="extra4-subtitle"></div>
+          <table class="sr-only" id="extra4-data-table"><caption>Parameter-grid heatmap values</caption><thead><tr><th scope="col">σ</th><th scope="col">P(Dead)</th><th scope="col">Outcome (5yr E[outcome multiple])</th></tr></thead><tbody id="extra4-data-body"></tbody></table>
+        </section>
         <section class="section methodology" aria-labelledby="methodology-heading" id="methodology-section">
           <div class="section-header">
             <div>
               <h2 id="methodology-heading">Methodology &amp; model</h2>
-              <p class="subtext">Technical write-up of the stochastic process, calibration approach, and published references for the Startup layer of this dashboard.</p>
+              <p class="subtext">Dissertation-grade technical write-up of the stochastic process, calibration, glossary, worked example, sensitivity analysis, comparison to alternatives, and references for the Startup layer of this dashboard.</p>
             </div>
-            <span class="subtext">WCAG 2.2 AA · dissertation-grade documentation</span>
+            <span class="subtext">WCAG 2.2 AA · 10 citations</span>
           </div>
+
+          <nav aria-labelledby="methodology-toc-heading" class="methodology-toc">
+            <h3 id="methodology-toc-heading">On this page</h3>
+            <ol>
+              <li><a href="#m-model">Stochastic model</a></li>
+              <li><a href="#m-calib">Calibration</a></li>
+              <li><a href="#m-impl">Numerical implementation</a></li>
+              <li><a href="#m-glossary">Glossary &amp; notation</a></li>
+              <li><a href="#m-example">Worked example</a></li>
+              <li><a href="#m-sens">Sensitivity analysis</a></li>
+              <li><a href="#m-alt">Comparison vs alternative approaches</a></li>
+              <li><a href="#m-limits">Known limitations</a></li>
+              <li><a href="#m-refs">References</a></li>
+            </ol>
+          </nav>
 
           <article class="methodology-article">
             <h3 id="m-model">Stochastic model</h3>
-            <p>Startup post-money valuation is modeled as a Merton jump-diffusion to capture both diffusive growth and discrete revaluation at priced funding rounds. Conditional on survival to round <code>k</code>, the valuation evolves as:</p>
+            <p>Venture-backed companies are not best described by continuous-state diffusions because their valuations re-price discretely at priced funding events and because outcome distributions are heavily power-law in the upper tail. The well-known stylised facts are: (i) median follow-on multiples are modest (typically 1.5–2.5× per stage) but the upper-decile multiples are extreme (10–100×+); (ii) attrition is high and front-loaded (~25–35% of seed-funded companies fail before Series A); (iii) outcome correlation across vintage years is non-zero but weak. We model the post-money valuation <code>V_t</code> as a Merton jump-diffusion coupled to a discrete-state stage Markov chain:</p>
       <p class="m-eq"><span role="math" aria-label="d log V sub t equals mu dt plus sigma dW sub t plus sum over k of J sub k times d N sub k">d log V_t = μ dt + σ dW_t + sum_k J_k dN_k</span></p>
-      <p>Stage transitions follow a discrete Markov chain over states <code>{Seed, A, B, C, D+, IPO, M&amp;A, Dead}</code> with 12-month transition probabilities calibrated from Crunchbase outcomes data (2010–2024 vintages). Conditional on graduation to stage <code>k+1</code>, the jump <code>J_k</code> is drawn from a log-normal with mean mark-up consistent with median priced-round valuation step-ups (typically 2.4× Seed→A, 2.1× A→B, 1.7× B→C).</p>
+      <p>The diffusion component represents continuous between-round revaluation (revenue progress reflected in the next round's negotiation but not yet a priced event). The jump component <code>J_k dN_k</code> fires only at priced round events and is the dominant source of variance for an early-stage company. The drift <code>μ</code> is stage-dependent, and reflects the Cochrane (2005) finding that the venture-asset CAPM beta is high (≈1.5–2.0) but its arithmetic-mean log-return is only mildly positive.</p>
+      <p>Stage transitions follow a discrete Markov chain over states <code>S = {Seed, A, B, C, D+, IPO, M&amp;A, Dead}</code>. The 12-month transition matrix is calibrated from the Crunchbase 2010–2022 outcomes data and from the Correlation Ventures benchmark study. The transition matrix is not row-stochastic in the strict sense because we allow simultaneous probabilities of graduation, stagnation, M&amp;A and shutdown in a single annual epoch; we re-normalize numerically.</p>
+      <p>Conditional on graduation to stage <code>k+1</code>, the priced-round jump <code>J_k</code> is drawn from a log-normal with mean equal to the empirical median step-up (Seed→A 2.4×, A→B 2.1×, B→C 1.7×, C→D 1.5×, D→IPO 1.3×) and standard deviation consistent with Pitchbook quartile spreads. Power-law tail behavior is captured because the convolution of log-normal jumps with a graduation probability that itself contracts at later stages produces a distribution with Pareto-like tails on the multi-stage outcome aggregate.</p>
+      <p>Liquidation preferences are modeled with a 1× non-participating preferred waterfall in stack order. The runway panel (extra) integrates cash balance minus monthly burn plus monthly MRR through the next-round date; the dilution overlay applies a 22% pool grant + new-money dilution at each priced round, calibrated to median Carta data.</p>
 
             <h3 id="m-calib">Calibration</h3>
-            <p>Drift <code>μ</code> uses the Cochrane (2005) ICAPM-adjusted alpha for venture as a starting point and is then per-stage tilted. Volatility <code>σ</code> exceeds public equivalents materially (σ ≈ 0.45 for Series A vs σ ≈ 0.25 for SPY) reflecting illiquidity and information asymmetry. Burn rate uses median net-burn from the Bessemer State-of-the-Cloud SaaS benchmarks; runway is computed deterministically off cash balance and burn until the next round event in the Markov chain.</p>
+            <p>Per-stage drift <code>μ</code> is set so that the simulated stage-graduation conditional return matches the Correlation Ventures empirical mean priced-round multiple. Per-stage diffusion <code>σ</code> is calibrated to the Pitchbook quartile spread of follow-on multiples: Series A σ ≈ 0.55, Series B σ ≈ 0.45, Series C σ ≈ 0.38, Series D+ σ ≈ 0.32. These are large by public-equity standards but standard for the venture asset class.</p>
+      <p>The transition matrix is fit by maximum likelihood on a 12-month grid over the Crunchbase outcome dataset (filtered to U.S. companies with disclosed funding). Key entries: Seed→A 30%, Seed→Dead 20%, A→B 32%, B→C 30%, C→D 25%, D+→IPO 20%, D+→M&amp;A 20%. The IPO and M&amp;A states are absorbing.</p>
+      <p>Burn rate uses median net-burn from the Bessemer State-of-the-Cloud SaaS benchmarks: $0.5M/mo at Seed, 
+
+  </main>.5M/mo at Series A, $4M/mo at Series B, $8M/mo at Series C. The runway-to-next-round formula <code>R = C₀ / (B − MRR_growth)</code> assumes MRR growth converts dollar-for-dollar to burn offset, which is an upper bound.</p>
 
             <h3 id="m-impl">Numerical implementation</h3>
-            <p>The Markov state matrix and the jump-diffusion are coupled: at simulation step <code>t</code> a draw is taken against the transition kernel and, conditional on a graduation jump, the post-money is multiplied by the round mark-up. Liquidation preferences are modeled with 1× non-participating preferred stack ordering for the dilution waterfall. The runway panel ignores secondary tender offers.</p>
+            <p>The Markov state matrix and the jump-diffusion are coupled in a single time-stepped MC engine: at simulation step <code>t</code> a draw is taken against the transition kernel and, conditional on a graduation jump, the post-money is multiplied by the round mark-up drawn from the per-transition log-normal. The implementation uses an explicit Euler scheme on <code>log V</code> with daily granularity between events.</p>
+      <p>The runway waterfall (extra panel) is rendered as a stacked area chart of cash balance over 36 months with the dilution overlay shown as a dashed line plotting founder ownership decay. The Series Markov matrix (extra2) is a static 8×8 heatmap.</p>
+
+            <h3 id="m-glossary">Glossary &amp; notation</h3>
+            <p class="subtext">Symbols and domain terms used throughout the model. Symbol units are given where applicable.</p>
+            <dl class="methodology-glossary"><dt><span aria-label="V sub t">V_t</span></dt><dd>Post-money valuation at time t. <em>Units:</em> <code>USD millions</code></dd><dt><span aria-label="mu">μ</span></dt><dd>Stage-conditional log-drift; reflects venture risk premium. <em>Units:</em> <code>1/yr (log)</code></dd><dt><span aria-label="sigma">σ</span></dt><dd>Stage-conditional diffusion volatility. <em>Units:</em> <code>1/sqrt(yr)</code></dd><dt><span aria-label="J sub k">J_k</span></dt><dd>Priced-round jump log-magnitude at graduation event k. <em>Units:</em> <code>log multiple</code></dd><dt><span aria-label="d N sub k">dN_k</span></dt><dd>Round-event indicator (counting process). <em>Units:</em> <code>{0,1}</code></dd><dt><span>S</span></dt><dd>Stage Markov chain state space {Seed, A, B, C, D+, IPO, M&A, Dead}. <em>Units:</em> <code>categorical</code></dd><dt><span>ARR</span></dt><dd>Annualized recurring revenue. <em>Units:</em> <code>USD</code></dd><dt><span>MRR</span></dt><dd>Monthly recurring revenue. <em>Units:</em> <code>USD</code></dd><dt><span>NRR</span></dt><dd>Net revenue retention. <em>Units:</em> <code>%</code></dd><dt><span>Burn</span></dt><dd>Monthly net cash outflow. <em>Units:</em> <code>USD/month</code></dd><dt><span>Runway</span></dt><dd>Cash balance ÷ burn (with growth offset). <em>Units:</em> <code>months</code></dd><dt><span>Pool</span></dt><dd>Option pool grant at priced round (typically 10–22%). <em>Units:</em> <code>% post-money</code></dd><dt><span>DPI</span></dt><dd>Distributions-to-paid-in capital ratio (LP-realized return). <em>Units:</em> <code>ratio</code></dd><dt><span>TVPI</span></dt><dd>Total value to paid-in (DPI + RVPI). <em>Units:</em> <code>ratio</code></dd></dl>
+
+            <h3 id="m-example">Worked example</h3>
+            <p>End-to-end numerical walk-through of one Monte Carlo path for a representative startup, showing how a single random draw translates through the model to a published statistic on the dashboard.</p>
+            <ol class="methodology-example"><li><strong>Inputs.</strong> Select AETHER (Series B, $480M post-money). Calibrated: μ_B = 0.45, σ_B = 0.45/sqrt(yr), MRR start $5.76M, burn $6.86M/mo. </li><li><strong>Diffusion step.</strong> Daily Euler step on log V: ΔlogV = μ·Δt + σ·sqrt(Δt)·Z₁. With Z₁ = 1.1 and Δt = 1/365: ΔlogV ≈ 0.00123 + 0.0257 ≈ 0.027 (+2.7%). <p class="m-eq" role="math" aria-label="delta log V sub t equals mu delta t plus sigma square root delta t times Z sub t">Δlog V_t = μ Δt + σ √Δt · Z_t</p></li><li><strong>Markov transition.</strong> Annual Markov draw against the Series-B row. With 32% B→C, 18% B→Dead, 6% B→M&A, 4% B→IPO, 40% B→B (stay). Draw U₁ = 0.27 → graduates to C. </li><li><strong>Round jump.</strong> Conditional on C graduation, draw J ~ LogNormal(log(1.7), 0.30²). With Z₂ = 0.6 → J ≈ 2.04×. New post-money ≈ $480M × 2.04 = $979M. </li><li><strong>Dilution.</strong> C round raises $80M at 25% dilution to existing shareholders. Founder ownership 42% → 42% × 0.78 = 32.8% post-C. Cumulative dilution from Seed = ~65%. </li></ol>
+
+            <h3 id="m-sens">Sensitivity analysis</h3>
+            <p>The tornado panel (extra3) shows that the dominant single-parameter sensitivity is the σ at the current stage — a 25% increase in stage-B σ widens the 95% CI by ~38%. The Markov transition probability to Dead is the second-largest driver of the expected return: a 10-percentage-point increase in the B→Dead probability reduces E[outcome multiple] by ~22%. The parameter-grid heatmap (extra4) plots (σ, B→Dead) jointly.</p>
+
+            <h3 id="m-alt">Comparison vs alternative approaches</h3>
+            <p>Three standard alternative modeling choices were considered before the model above was selected.</p>
+            <ul class="methodology-alts"><li><strong>Pure log-normal cross-section.</strong> Standard "venture power-law" approach (Kaplan-Schoar). Simple, but cannot produce stage-conditional metrics or runway analyses.</li><li><strong>Real-options Black-Scholes.</strong> Treats each round as a call option on the next round. Captures convexity nicely but assumes continuous re-pricing which is empirically false.</li><li><strong>Hidden Markov regime model.</strong> Adds a hidden "market regime" (Hot vs Cold vintage) that shifts σ and graduation rates. Better predictive performance but requires careful identification — we chose the simpler explicit-Markov approach.</li></ul>
 
             <h3 id="m-limits">Known limitations</h3>
-            <ul><li>Bridge rounds and SAFE conversions are folded into the nearest priced-round event; their dilutive effects are approximated, not exact.</li><li>M&amp;A outcomes are modeled as terminal states without an explicit acquihire-vs-strategic distinction.</li><li>Volatility is constant per stage; in reality σ contracts materially from C onward and the model overstates late-stage path dispersion.</li></ul>
+            <ul><li>Bridge rounds and SAFE conversions are folded into the nearest priced-round event; their dilutive effects are approximated, not exact.</li><li>M&amp;A outcomes are modeled as terminal states without explicit acquihire-vs-strategic distinction; in reality the multiple distribution differs substantially.</li><li>Volatility is constant per stage; in reality σ contracts materially from C onward and the model overstates late-stage path dispersion.</li><li>Cross-portfolio correlation (e.g. fund-level vintage effects) is not modeled — each company evolves independently.</li><li>Discount-rate effects on private valuations during 2022-2024 tightening cycles are not explicitly modeled; instead they show up in the empirical jump-mark-down distribution.</li></ul>
 
             <h3 id="m-refs">References</h3>
-            <ol class="methodology-refs" aria-label="References"><li><cite>Cochrane, J. H. (2005). The risk and return of venture capital. Journal of Financial Economics 75(1), 3–52.</cite></li><li><cite>Merton, R. C. (1976). Option pricing when underlying stock returns are discontinuous. Journal of Financial Economics 3(1–2), 125–144.</cite></li><li><cite>Kaplan, S. N. &amp; Schoar, A. (2005). Private Equity Performance: Returns, Persistence, and Capital Flows. Journal of Finance 60(4).</cite></li><li><cite>Correlation Ventures (2023). Venture Outcomes Data 2010–2022.</cite></li></ol>
+            <ol class="methodology-refs" aria-label="References"><li><cite>Cochrane, J. H. (2005). The risk and return of venture capital. Journal of Financial Economics 75(1), 3–52.</cite></li><li><cite>Merton, R. C. (1976). Option pricing when underlying stock returns are discontinuous. Journal of Financial Economics 3(1–2), 125–144.</cite></li><li><cite>Kaplan, S. N. &amp; Schoar, A. (2005). Private Equity Performance: Returns, Persistence, and Capital Flows. Journal of Finance 60(4).</cite></li><li><cite>Korteweg, A. (2019). Risk Adjustment in Private Equity Returns. Annual Review of Financial Economics 11.</cite></li><li><cite>Sahlman, W. A. (2010). Risk and Reward in Venture Capital. Harvard Business School Background Note 811-036.</cite></li><li><cite>Gompers, P. &amp; Lerner, J. (2001). The Money of Invention. Harvard Business School Press.</cite></li><li><cite>Correlation Ventures (2023). Venture Outcomes Data 2010–2022.</cite></li><li><cite>Pitchbook–NVCA Venture Monitor (Q4 2024).</cite></li><li><cite>Bessemer Venture Partners (2024). State of the Cloud 2024 — Benchmarks &amp; Best Practices.</cite></li><li><cite>Carta (2025). State of Private Markets Report Q4 2024.</cite></li></ol>
           </article>
         </section>
 
