@@ -85,7 +85,7 @@
 
       <div class="strategy-bar">
         <fieldset class="strategy-fieldset">
-          <legend>Trading strategies <span class="legend-hint">pick one or more — signals combine</span></legend>
+          <legend>Portfolio strategies <span class="legend-hint">pick one or more — signals combine</span></legend>
           <div class="strategy-options" id="strategy-options"></div>
         </fieldset>
       </div>
@@ -366,6 +366,7 @@
           <nav aria-labelledby="methodology-toc-heading" class="methodology-toc">
             <h3 id="methodology-toc-heading">On this page</h3>
             <ol>
+              <li><a href="#m-abstract">Abstract</a></li>
               <li><a href="#m-model">Stochastic model</a></li>
               <li><a href="#m-calib">Calibration</a></li>
               <li><a href="#m-impl">Numerical implementation</a></li>
@@ -379,6 +380,9 @@
           </nav>
 
           <article class="methodology-article">
+            <h3 id="m-abstract">Abstract</h3>
+            <p>This dashboard implements a coupled jump-diffusion and stage-Markov forecasting layer over a venture portfolio. Continuous between-round revaluation is modeled by a log-diffusion; discrete priced-round events are Merton-style jumps with stage-conditional mark-up distributions (<cite>Merton, 1976</cite>); company outcome trajectories follow an 8-state Markov chain over {Seed, A, B, C, D+, IPO, M&amp;A, Dead} calibrated on Crunchbase 2010–2022 outcomes. The choice over the simpler Cochrane (2005) cross-sectional CAPM framework is deliberate: stage-conditional metrics (runway, dilution waterfall, follow-on probability) require an explicitly time-stepped Markov layer that the cross-sectional approach cannot produce (<cite>Cochrane, 2005</cite>; <cite>Kaplan &amp; Schoar, 2005</cite>). Power-law tail behavior emerges naturally from the convolution of log-normal jumps with stage-attrition.</p>
+
             <h3 id="m-model">Stochastic model</h3>
             <p>Venture-backed companies are not best described by continuous-state diffusions because their valuations re-price discretely at priced funding events and because outcome distributions are heavily power-law in the upper tail. The well-known stylised facts are: (i) median follow-on multiples are modest (typically 1.5–2.5× per stage) but the upper-decile multiples are extreme (10–100×+); (ii) attrition is high and front-loaded (~25–35% of seed-funded companies fail before Series A); (iii) outcome correlation across vintage years is non-zero but weak. We model the post-money valuation <code>V_t</code> as a Merton jump-diffusion coupled to a discrete-state stage Markov chain:</p>
       <p class="m-eq"><span role="math" aria-label="d log V sub t equals mu dt plus sigma dW sub t plus sum over k of J sub k times d N sub k">d log V_t = μ dt + σ dW_t + sum_k J_k dN_k</span></p>
