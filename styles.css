@@ -1652,6 +1652,8 @@ table.stocks tbody tr:focus-visible {
   th:nth-child(9), td.pressure-cell { display: none; }
 }
 
+:root { --accent-rgb: 0, 255, 136; }
+
 
 
 /* ====================== Methodology / dissertation styles ====================== */
@@ -1740,6 +1742,30 @@ table.stocks tbody tr:focus-visible {
   border-left: 2px solid var(--border-strong);
 }
 .methodology-alts strong { color: var(--accent); font-weight: 700; }
+.methodology-future,
+.methodology-code {
+  margin: 6px 0 16px 0;
+  padding-left: 22px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.methodology-future li { margin-bottom: 8px; }
+.methodology-code li { margin-bottom: 6px; }
+.methodology-code code {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  padding: 1px 6px;
+  font-size: 11.5px;
+}
+.methodology-code a, .methodology-future a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.methodology-code a:hover, .methodology-future a:hover { color: var(--text); }
 .methodology-article { max-width: 900px; }
 .methodology-article p {
   font-size: 12px;
@@ -1799,7 +1825,112 @@ table.stocks tbody tr:focus-visible {
 
 
 
+/* ====================== Hero / cover panel ====================== */
+.hero {
+  position: relative;
+  background: linear-gradient(180deg, var(--bg-elev-1) 0%, var(--bg) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  margin-bottom: 16px;
+  overflow: hidden;
+  padding: 28px 32px 26px;
+}
+.hero::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 10% 0%, rgba(var(--accent-rgb, 0,255,136), 0.06), transparent 55%),
+              radial-gradient(ellipse at 90% 100%, rgba(var(--accent-rgb, 0,255,136), 0.04), transparent 55%);
+  pointer-events: none;
+}
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 32px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+.hero-text { max-width: 580px; }
+.hero-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  margin: 0 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); display: inline-block; }
+.hero-h {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  margin: 0 0 14px 0;
+  color: var(--text);
+}
+.hero-sub {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  margin: 0 0 12px 0;
+  max-width: 540px;
+}
+.hero-abstract {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin: 0 0 18px 0;
+  max-width: 540px;
+}
+.hero-actions { margin: 0; display: flex; gap: 20px; flex-wrap: wrap; }
+.hero-link {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 6px 0;
+  border-bottom: 1px solid currentColor;
+}
+.hero-link:hover, .hero-link:focus-visible { color: var(--accent-bright, var(--accent)); }
+.hero-art {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-art svg {
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.55));
+}
+@media (max-width: 860px) {
+  .hero { padding: 22px 20px 20px; }
+  .hero-grid { grid-template-columns: 1fr; gap: 18px; }
+  .hero-h { font-size: 22px; }
+  .hero-art { min-height: 140px; }
+}
+
+
+
 /* ====================== UI quality pass — responsive + spacing rhythm ====================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
 @media (max-width: 720px) {
   .methodology-toc ol { grid-template-columns: 1fr; }
   .methodology-glossary {
@@ -1896,6 +2027,51 @@ table.stocks td.num { font-variant-numeric: tabular-nums; }
   padding-bottom: 10px;
   margin-bottom: 14px;
 }
+
+
+
+/* ====================== Per-project font system ====================== */
+:root {
+  --font-sans:  "Inter Tight", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Inter Tight", system-ui, sans-serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, monospace;
+}
+html, body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  font-synthesis: none;
+  font-feature-settings: "kern" 1;
+}
+/* Mono for data-dense surfaces — preserved on every project */
+.term-strip, .ticker-tape, .ticker-tape-wrap,
+table.stocks, table.stocks th, table.stocks td,
+.kpi-value, .rail-box-value,
+.methodology-article code,
+.methodology-glossary dt,
+.methodology-article p.m-eq,
+[role="math"],
+.heatmap .heat-tile,
+.pressure-num,
+#mc-counter, #mc-day-label,
+#term-conn, #term-conn-label, #term-conn-src, #term-market, #term-watch, #term-horizon, #term-paths, #term-seed, #term-latency, #term-uptime { font-family: var(--font-mono); }
+/* Headings + brand → sans */
+.app-header h1, .section h2, .section h3, .section h4, .methodology-article h3 { font-family: var(--font-sans); }
+/* Long-form prose → serif (per-project; for projects without distinct serif, this falls back to sans) */
+.app-header .subtitle,
+.methodology-article p,
+.methodology-article ul li,
+.methodology-article ol.methodology-refs li,
+.methodology-article ol.methodology-example li,
+.methodology-glossary dd,
+.methodology-alts li,
+.subtext { font-family: var(--font-serif); }
+/* Controls → sans */
+.btn, .strategy-chip, .strategy-fieldset legend,
+.field label, .kpi-label, .rail-box-label, .app-footer,
+.methodology-toc h3, .methodology-toc a { font-family: var(--font-sans); }
+/* Italic citations — always serif if a distinct serif exists */
+cite { font-style: italic; color: var(--text); }
 
 
 
